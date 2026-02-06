@@ -1,11 +1,20 @@
+import { createTheme } from '@mui/material/styles';
+
 const theme = createTheme({
   palette: {
     background: {
-      default: '#F6FBF8', // ⭐ 아주 연한 초록
+      default: '#F4F6F8',
       paper: '#FFFFFF',
     },
     primary: {
-      main: '#6AA374',
+      main: '#1976d2', // 기본 MUI 블루 (안전)
+    },
+    text: {
+      primary: '#1F2937',
+      secondary: '#6B7280',
     },
   },
 });
+
+
+export default theme;
