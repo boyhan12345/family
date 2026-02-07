@@ -7,7 +7,7 @@ export default function Father() {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        👨 엄마 일정
+        👩 엄마 일정
       </Typography>
 
       <FamilyCalendar member="엄마" />

@@ -1,12 +1,5 @@
 import * as React from 'react';
-import {
-  Modal,
-  Box,
-  Typography,
-  TextField,
-  Button,
-  MenuItem,
-} from '@mui/material';
+import { Modal, Box, Typography, TextField, Button, MenuItem } from '@mui/material';
 import dayjs from 'dayjs';
 
 const style = {
@@ -21,12 +14,20 @@ const style = {
   borderRadius: 2,
 };
 
+export const ownerEmoji = {
+  아빠: '👨',
+  엄마: '👩',
+  채아: '👧',
+  수아: '👶',
+};
+
 export default function ScheduleModal({
   open,
   onClose,
   selectedDate,
   selectedSchedule,
   onSave,
+  onDelete, // 삭제 함수 부모에서 전달
 }) {
   const today = dayjs();
 
@@ -36,9 +37,6 @@ export default function ScheduleModal({
   const [time, setTime] = React.useState('');
   const [memo, setMemo] = React.useState('');
 
-  /* ===========================
-     📌 날짜 클릭 → 신규 일정
-  ============================ */
   React.useEffect(() => {
     if (selectedDate && !selectedSchedule) {
       setStartDate(dayjs(selectedDate));
@@ -46,9 +44,6 @@ export default function ScheduleModal({
     }
   }, [selectedDate, selectedSchedule]);
 
-  /* ===========================
-     📌 일정 클릭 → 수정 모드
-  ============================ */
   React.useEffect(() => {
     if (selectedSchedule) {
       setStartDate(dayjs(selectedSchedule.startDate));
@@ -59,30 +54,30 @@ export default function ScheduleModal({
     }
   }, [selectedSchedule]);
 
-  /* ===========================
-     📌 입력값 초기화
-  ============================ */
   const resetForm = () => {
     setOwner('');
     setTime('');
     setMemo('');
   };
 
-  /* ===========================
-     📌 저장 (등록 / 수정 공용)
-  ============================ */
   const handleSubmit = () => {
     onSave({
-      id: selectedSchedule?.id, // 수정이면 id 유지
+      id: selectedSchedule?.id,
       startDate,
       endDate,
       owner,
       time,
       memo,
     });
-
     resetForm();
     onClose();
+  };
+
+  const handleDelete = () => {
+    if (selectedSchedule && confirm('정말 삭제하시겠습니까?')) {
+      onDelete(selectedSchedule.id);
+      onClose();
+    }
   };
 
   return (
@@ -122,24 +117,21 @@ export default function ScheduleModal({
         >
           {['아빠', '엄마', '채아', '수아'].map((name) => (
             <MenuItem key={name} value={name}>
-              {name}
+              {ownerEmoji[name]} {name}
             </MenuItem>
           ))}
         </TextField>
 
         <TextField
-  label="시간"
-  type="time"
-  fullWidth
-  value={time}
-  onChange={(e) => setTime(e.target.value)}
-  sx={{ mb: 2 }}
-  InputLabelProps={{ shrink: true }}
-  inputProps={{
-    step: 300, // 5분 단위 (선택)
-  }}
-/>
-
+          label="시간"
+          type="time"
+          fullWidth
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          sx={{ mb: 2 }}
+          InputLabelProps={{ shrink: true }}
+          inputProps={{ step: 300 }}
+        />
 
         <TextField
           label="비고"
@@ -152,9 +144,25 @@ export default function ScheduleModal({
           sx={{ mb: 3 }}
         />
 
-        <Button variant="contained" fullWidth onClick={handleSubmit}>
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={handleSubmit}
+          sx={{ mb: selectedSchedule ? 1 : 0, backgroundColor: '#1976d2', color: '#fff', '&:hover': { backgroundColor: '#1565c0' } }}
+        >
           {selectedSchedule ? '수정' : '등록'}
         </Button>
+
+        {selectedSchedule && (
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={handleDelete}
+            sx={{ backgroundColor: '#1976d2', color: '#fff', '&:hover': { backgroundColor: '#1565c0' } }}
+          >
+            삭제
+          </Button>
+        )}
       </Box>
     </Modal>
   );
