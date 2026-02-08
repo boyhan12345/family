@@ -27,7 +27,7 @@ export default function ScheduleModal({
   selectedDate,
   selectedSchedule,
   onSave,
-  onDelete, // 삭제 함수 부모에서 전달
+  onDelete,
 }) {
   const today = dayjs();
 
@@ -37,28 +37,31 @@ export default function ScheduleModal({
   const [time, setTime] = React.useState('');
   const [memo, setMemo] = React.useState('');
 
+  /**
+   * 🔥 핵심 로직
+   * 모달이 열릴 때마다
+   * - 수정이면 selectedSchedule 값 세팅
+   * - 등록이면 selectedDate 기준으로 초기화
+   */
   React.useEffect(() => {
-    if (selectedDate && !selectedSchedule) {
-      setStartDate(dayjs(selectedDate));
-      setEndDate(dayjs(selectedDate));
-    }
-  }, [selectedDate, selectedSchedule]);
+    if (!open) return;
 
-  React.useEffect(() => {
     if (selectedSchedule) {
+      // 수정 모드
       setStartDate(dayjs(selectedSchedule.startDate));
       setEndDate(dayjs(selectedSchedule.endDate));
-      setOwner(selectedSchedule.owner);
-      setTime(selectedSchedule.time);
-      setMemo(selectedSchedule.memo);
+      setOwner(selectedSchedule.owner || '');
+      setTime(selectedSchedule.time || '');
+      setMemo(selectedSchedule.memo || '');
+    } else if (selectedDate) {
+      // 등록 모드
+      setStartDate(dayjs(selectedDate));
+      setEndDate(dayjs(selectedDate));
+      setOwner('');
+      setTime('');
+      setMemo('');
     }
-  }, [selectedSchedule]);
-
-  const resetForm = () => {
-    setOwner('');
-    setTime('');
-    setMemo('');
-  };
+  }, [open, selectedSchedule, selectedDate]);
 
   const handleSubmit = () => {
     onSave({
@@ -69,7 +72,6 @@ export default function ScheduleModal({
       time,
       memo,
     });
-    resetForm();
     onClose();
   };
 
@@ -87,6 +89,7 @@ export default function ScheduleModal({
           {selectedSchedule ? '일정 수정' : '일정 등록'}
         </Typography>
 
+        {/* 시작 날짜 */}
         <TextField
           label="시작 날짜"
           type="date"
@@ -97,6 +100,7 @@ export default function ScheduleModal({
           InputLabelProps={{ shrink: true }}
         />
 
+        {/* 끝 날짜 */}
         <TextField
           label="끝 날짜"
           type="date"
@@ -107,6 +111,7 @@ export default function ScheduleModal({
           InputLabelProps={{ shrink: true }}
         />
 
+        {/* 등록자 */}
         <TextField
           select
           label="등록자"
@@ -122,6 +127,7 @@ export default function ScheduleModal({
           ))}
         </TextField>
 
+        {/* 시간 (24시간 hh:mm) */}
         <TextField
           label="시간"
           type="time"
@@ -130,9 +136,10 @@ export default function ScheduleModal({
           onChange={(e) => setTime(e.target.value)}
           sx={{ mb: 2 }}
           InputLabelProps={{ shrink: true }}
-          inputProps={{ step: 300 }}
+          inputProps={{ step: 300 }} // 5분 단위
         />
 
+        {/* 비고 */}
         <TextField
           label="비고"
           placeholder="약속 장소, 메모 등"
@@ -144,21 +151,30 @@ export default function ScheduleModal({
           sx={{ mb: 3 }}
         />
 
+        {/* 등록 / 수정 버튼 */}
         <Button
           variant="contained"
           fullWidth
           onClick={handleSubmit}
-          sx={{ mb: selectedSchedule ? 1 : 0, backgroundColor: '#1976d2', color: '#fff', '&:hover': { backgroundColor: '#1565c0' } }}
+          sx={{
+            mb: selectedSchedule ? 1 : 0,
+            backgroundColor: '#1976d2',
+            '&:hover': { backgroundColor: '#1565c0' },
+          }}
         >
           {selectedSchedule ? '수정' : '등록'}
         </Button>
 
+        {/* 삭제 버튼 (수정 모드일 때만) */}
         {selectedSchedule && (
           <Button
             variant="contained"
             fullWidth
             onClick={handleDelete}
-            sx={{ backgroundColor: '#1976d2', color: '#fff', '&:hover': { backgroundColor: '#1565c0' } }}
+            sx={{
+              backgroundColor: '#d32f2f',
+              '&:hover': { backgroundColor: '#c62828' },
+            }}
           >
             삭제
           </Button>

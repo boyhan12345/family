@@ -1,24 +1,17 @@
-import React, { useState } from 'react';
-import BigFamilySchedule from '../components/calendar/BigFamilyCalendar';
+import WeeklySchedule from '../components/calendar/weekly/WeeklySchedule';
 
 export default function Chaea() {
-  const [schedules, setSchedules] = useState({
-    월: [],
-    화: [],
-    수: [],
-    목: [],
-    금: [],
-    토: [],
-    일: [],
-  });
-
   return (
-    <div>
-      <h2>채아 전용 일정 관리</h2>
-      <BigFamilySchedule
-        schedules={schedules}
-        setSchedules={setSchedules} // 상태 직접 전달
-      />
+    <div
+      style={{
+        width: '100%',
+        minHeight: '100vh',
+        padding: '24px',
+        boxSizing: 'border-box',
+      }}
+    >
+      <h2 style={{ marginBottom: '16px' }}>채아 개인 일정</h2>
+      <WeeklySchedule />
     </div>
   );
 }

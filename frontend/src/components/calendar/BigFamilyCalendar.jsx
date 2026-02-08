@@ -25,6 +25,7 @@ function DraggableSchedule({ schedule, onScheduleClick, onDelete }) {
   return (
     <Box
       ref={drag}
+      onClick={(e) => e.stopPropagation()} // 🔥 부모 클릭 차단
       sx={{
         border: '1px solid #1976d2',
         borderRadius: 1,
@@ -42,7 +43,10 @@ function DraggableSchedule({ schedule, onScheduleClick, onDelete }) {
       <Typography
         variant="caption"
         sx={{ fontWeight: 600, fontSize: '1.125rem' }}
-        onClick={() => onScheduleClick(schedule)}
+        onClick={(e) => {
+          e.stopPropagation();          // 🔥🔥🔥 핵심
+          onScheduleClick(schedule);
+        }}
       >
         {ownerEmoji[schedule.owner]} {schedule.owner} {schedule.time} {schedule.memo}
       </Typography>

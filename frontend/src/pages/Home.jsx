@@ -7,15 +7,20 @@ export default function Home() {
   const [schedules, setSchedules] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
 
+  // 날짜 클릭 → 등록 모드
   const handleDayClick = (day) => {
     setSelectedDate(day);
     setSelectedSchedule(null);
+    setOpenModal(true);
   };
 
+  // 일정 클릭 → 수정 모드
   const handleScheduleClick = (schedule) => {
     setSelectedSchedule(schedule);
     setSelectedDate(schedule.startDate);
+    setOpenModal(true);
   };
 
   const handleSave = (schedule) => {
@@ -26,17 +31,14 @@ export default function Home() {
     } else {
       setSchedules((prev) => [...prev, { ...schedule, id: Date.now() }]);
     }
-    setSelectedDate(null);
-    setSelectedSchedule(null);
+    handleCloseModal();
   };
 
   const handleDelete = (id) => {
     setSchedules((prev) => prev.filter((s) => s.id !== id));
-    setSelectedDate(null);
-    setSelectedSchedule(null);
+    handleCloseModal();
   };
 
-  // 🔹 드래그 후 날짜 변경
   const handleMoveSchedule = (id, newDate) => {
     setSchedules((prev) =>
       prev.map((s) =>
@@ -46,6 +48,7 @@ export default function Home() {
   };
 
   const handleCloseModal = () => {
+    setOpenModal(false);
     setSelectedDate(null);
     setSelectedSchedule(null);
   };
@@ -57,11 +60,11 @@ export default function Home() {
         onDayClick={handleDayClick}
         onScheduleClick={handleScheduleClick}
         onDelete={handleDelete}
-        onMoveSchedule={handleMoveSchedule} // 드래그로 이동
+        onMoveSchedule={handleMoveSchedule}
       />
 
       <ScheduleModal
-        open={!!selectedDate}
+        open={openModal}
         selectedDate={selectedDate}
         selectedSchedule={selectedSchedule}
         onDelete={handleDelete}
