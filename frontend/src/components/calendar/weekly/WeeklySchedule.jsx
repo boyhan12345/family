@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -6,16 +6,20 @@ import {
   CardContent,
 } from '@mui/material';
 import dayjs from 'dayjs';
-import ScheduleModal from '../ScheduleModal'; 
-// ⚠️ 경로 확인!
-// weekly 폴더 기준이면 ../ScheduleModal 이 맞음
+import ScheduleModal, { ownerEmoji } from '../ScheduleModal';
 
 const days = ['월', '화', '수', '목', '금', '토', '일'];
+
+const ownerColor = {
+  아빠: "#1976d2",
+  엄마: "#d81b60",
+  채아: "#f9a825",
+  수아: "#43a047",
+};
 
 export default function WeeklySchedule() {
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedSchedule, setSelectedSchedule] = useState(null);
 
   const [schedules, setSchedules] = useState({
     월: [],
@@ -27,24 +31,61 @@ export default function WeeklySchedule() {
     일: [],
   });
 
+  useEffect(() => {
+    fetchSchedules();
+  }, []);
+
+  const fetchSchedules = async () => {
+    const res = await fetch("http://localhost:8000/schedules/");
+    const data = await res.json();
+
+    const grouped = {
+      월: [],
+      화: [],
+      수: [],
+      목: [],
+      금: [],
+      토: [],
+      일: [],
+    };
+
+    data.forEach((item) => {
+      grouped[item.day].push(item);
+    });
+
+    setSchedules(grouped);
+  };
+
   const handleOpen = (day) => {
     setSelectedDate(dayjs().day(days.indexOf(day) + 1));
-    setSelectedSchedule(null);
     setOpen(true);
   };
 
-  const handleSave = (data) => {
+  // 🔥 owner 포함 저장
+  const handleSave = async (data) => {
     const day = days[data.startDate.day() - 1];
 
-    setSchedules((prev) => ({
-      ...prev,
-      [day]: [...prev[day], data],
-    }));
+    const payload = {
+      day: day,
+      memo: data.memo,
+      time: data.time,
+      owner: data.owner,  // 🔥 추가
+    };
+
+    await fetch("http://localhost:8000/schedules/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    fetchSchedules();
+    setOpen(false);
   };
 
   return (
     <>
-      {/* 🔥 화면 전체 + 완전 중앙 고정 */}
       <Box
         sx={{
           width: '100vw',
@@ -55,7 +96,6 @@ export default function WeeklySchedule() {
           backgroundColor: '#f5f5f5',
         }}
       >
-        {/* 카드 묶음 */}
         <Box
           sx={{
             display: 'flex',
@@ -74,41 +114,33 @@ export default function WeeklySchedule() {
                 cursor: 'pointer',
                 borderRadius: 3,
                 boxShadow: 4,
-                transition: '0.2s',
-                '&:hover': {
-                  boxShadow: 8,
-                  transform: 'translateY(-4px)',
-                },
               }}
             >
               <CardContent>
-                <Typography
-                  variant="h6"
-                  align="center"
-                  mb={2}
-                  fontWeight="bold"
-                >
+                <Typography variant="h6" align="center" mb={2} fontWeight="bold">
                   {day}
                 </Typography>
 
                 {schedules[day].length === 0 && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    align="center"
-                  >
+                  <Typography variant="body2" align="center">
                     일정 없음
                   </Typography>
                 )}
 
-                {schedules[day].map((s, idx) => (
-                  <Typography
-                    key={idx}
-                    variant="body2"
-                    sx={{ mb: 0.5 }}
+                {schedules[day].map((s) => (
+                  <Box
+                    key={s.id}
+                    sx={{
+                      backgroundColor: ownerColor[s.owner] || "#eee",
+                      color: "white",
+                      borderRadius: 2,
+                      p: 1,
+                      mb: 1,
+                      fontSize: 13,
+                    }}
                   >
-                    {s.time} {s.memo}
-                  </Typography>
+                    {ownerEmoji[s.owner]} {s.time} {s.memo}
+                  </Box>
                 ))}
               </CardContent>
             </Card>
@@ -116,14 +148,11 @@ export default function WeeklySchedule() {
         </Box>
       </Box>
 
-      {/* 기존 ScheduleModal 재사용 */}
       <ScheduleModal
         open={open}
         onClose={() => setOpen(false)}
         selectedDate={selectedDate}
-        selectedSchedule={selectedSchedule}
         onSave={handleSave}
-        onDelete={() => {}}
       />
     </>
   );
